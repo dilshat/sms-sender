@@ -12,7 +12,6 @@ before_install:
 
 script:
   - go test -coverprofile=coverage.txt -covermode=atomic ./...
-  - rm coverage.text
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
