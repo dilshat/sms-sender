@@ -124,7 +124,7 @@ func TestRecipientDao_RemoveOlderThanDays(t *testing.T) {
 
 	require.NoError(t, err)
 
-	all, err := recDao.GetAll()
+	all, _ := recDao.GetAll()
 
 	require.True(t, len(all) == 1)
 	require.Equal(t, MSG_ID1, all[0].MessageId)

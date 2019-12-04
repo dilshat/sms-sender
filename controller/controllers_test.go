@@ -36,14 +36,14 @@ func TestGetSendSmsFunc(t *testing.T) {
 	stringCalled = false
 	f = GetSendSmsFunc(&mockService{sendMsgErr: service.NewInvalidPayloadError("blablabla")})
 
-	err = f(mockContext{})
+	_ = f(mockContext{})
 
 	require.True(t, stringCalled)
 
 	stringCalled = false
 	f = GetSendSmsFunc(&mockService{sendMsgErr: errors.New("blablabla")})
 
-	err = f(mockContext{})
+	_ = f(mockContext{})
 
 	require.True(t, stringCalled)
 }
@@ -64,35 +64,35 @@ func TestGetCheckSmsFunc(t *testing.T) {
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("not found")})
 
-	err = f(mockContext{param: "123"})
+	_ = f(mockContext{param: "123"})
 
 	require.True(t, stringCalled)
 
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("blablabla")})
 
-	err = f(mockContext{param: "123"})
+	_ = f(mockContext{param: "123"})
 
 	require.True(t, stringCalled)
 
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("not found")})
 
-	err = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996777123456"})
 
 	require.True(t, stringCalled)
 
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("blablabla")})
 
-	err = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996777123456"})
 
 	require.True(t, stringCalled)
 
 	OK200 = false
 	f = GetCheckSmsFunc(mockService{})
 
-	err = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996777123456"})
 
 	require.True(t, OK200)
 }
