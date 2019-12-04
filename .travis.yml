@@ -3,11 +3,16 @@ language: go
 go:
   - "1.13"
 
+env:
+  global:
+    - GO111MODULE=on
+
 before_install:
   - go get -t -v ./...
 
 script:
-  - go test -race -coverprofile=coverage.txt -covermode=atomic
+  - go test -p=1 -coverprofile=coverage.txt -covermode=atomic https://github.com/Dilshat/sms-sender/...
+  - rm coverage.text
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
