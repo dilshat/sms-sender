@@ -1,4 +1,5 @@
 [![Build Status](https://img.shields.io/travis/Dilshat/sms-sender/master.svg)](https://travis-ci.org/Dilshat/sms-sender)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Dilshat/sms-sender)](https://goreportcard.com/report/github.com/Dilshat/sms-sender)
 
 #### SMS service
 Simple sms service that provides HTTP API to send text messages.
