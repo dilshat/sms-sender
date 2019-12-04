@@ -1,0 +1,142 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Simple sms service",
+        "title": "Sms service HTTP API",
+        "contact": {
+            "name": "Dilshat Aliev",
+            "email": "dilshat.aliev@gmail.com"
+        },
+        "license": {}
+    },
+    "paths": {
+        "/sms": {
+            "post": {
+                "description": "Sends sms message to specified phones",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Send sms",
+                "parameters": [
+                    {
+                        "description": "Message",
+                        "name": "sms",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/dto.Message"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Id"
+                        }
+                    },
+                    "400": {
+                        "description": "error description"
+                    }
+                }
+            }
+        },
+        "/sms/{id}": {
+            "get": {
+                "description": "Checks sms message delivery status",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Check sms",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Message id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number",
+                        "name": "phone",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MessageStatus"
+                        }
+                    },
+                    "400": {
+                        "description": "error description"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.Id": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.Message": {
+            "type": "object",
+            "properties": {
+                "phones": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MessageStatus": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "statuses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RecipientStatus"
+                    }
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RecipientStatus": {
+            "type": "object",
+            "properties": {
+                "phone": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

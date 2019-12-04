@@ -1,0 +1,92 @@
+definitions:
+  dto.Id:
+    properties:
+      id:
+        type: integer
+    type: object
+  dto.Message:
+    properties:
+      phones:
+        items:
+          type: string
+        type: array
+      sender:
+        type: string
+      text:
+        type: string
+    type: object
+  dto.MessageStatus:
+    properties:
+      id:
+        type: integer
+      sender:
+        type: string
+      statuses:
+        items:
+          $ref: '#/definitions/dto.RecipientStatus'
+        type: array
+      text:
+        type: string
+    type: object
+  dto.RecipientStatus:
+    properties:
+      phone:
+        type: string
+      status:
+        type: string
+    type: object
+info:
+  contact:
+    email: dilshat.aliev@gmail.com
+    name: Dilshat Aliev
+  description: Simple sms service
+  license: {}
+  title: Sms service HTTP API
+paths:
+  /sms:
+    post:
+      consumes:
+      - application/json
+      description: Sends sms message to specified phones
+      parameters:
+      - description: Message
+        in: body
+        name: sms
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Message'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Id'
+        "400":
+          description: error description
+      summary: Send sms
+  /sms/{id}:
+    get:
+      description: Checks sms message delivery status
+      parameters:
+      - description: Message id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Phone number
+        in: query
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageStatus'
+        "400":
+          description: error description
+      summary: Check sms
+swagger: "2.0"

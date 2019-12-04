@@ -1,0 +1,57 @@
+Service design
+
+The sms service must provide API to send an sms text message to a recipient or a set of recipients.
+SMS message might contain ascii/cyrillic letters and be of length up to 160/70 symbols respectively
+
+
+- http calls examples
+POST /sms
+{
+    "sender" : "Awesome",
+    "text" : "Hello World",
+    "phones" : ["996777123456","996222765432"]
+}
+
+response:
+200 OK
+{
+    "id" : "1234"
+}
+
+----------------------------------------------
+
+GET /sms/1234
+response:
+200 OK
+{
+    "id" : "1234",
+    "sender" : "Awesome",
+    "text" : "Hello World",
+    "statuses" : [
+        {
+            "phone" : "996777123456",
+            "status" : "DELIVRD"
+        },
+        {
+            "phone" : "996222765432",
+            "status" : "UNDELIV"
+        }
+    ]
+}
+
+------------------------------------
+
+GET /sms/1234?phone=996777123456
+response:
+200 OK
+{
+    "id" : "1234",
+    "sender" : "Awesome",
+    "text" : "Hello World",
+    "statuses" : [
+        {
+            "phone" : "996777123456",
+            "status" : "DELIVRD"
+        }
+    ]
+}

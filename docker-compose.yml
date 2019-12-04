@@ -1,0 +1,25 @@
+version: '3'
+
+# Define services
+services:
+
+  # App Service
+  app:
+    # Configuration for building the docker image for the service
+    build:
+      context: . # Use an image built from the specified dockerfile in the current directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: unless-stopped
+    environment: # Pass environment variables to the service
+      - SMS_IP=${SMS_IP}
+      - SMS_PORT=${SMS_PORT}
+      - SMS_ID=${SMS_ID}
+      - SMS_PWD=${SMS_PWD}
+      - HTTP_PORT=${HTTP_PORT}
+      - STATUS_STORE_DAYS=${STATUS_STORE_DAYS}
+      - ENQ_LNK_SEC=${ENQ_LNK_SEC}
+      - TX_PER_SEC=${TX_PER_SEC}
+      - SMS_MAX_LEN=${SMS_MAX_LEN}
+      - WEB_HOOK=${WEB_HOOK}
