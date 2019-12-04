@@ -1,11 +1,11 @@
 package dao
 
 import (
-	"github.com/dilshat/sms-sender/model"
-	"github.com/dilshat/sms-sender/util"
 	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/index"
 	"github.com/asdine/storm/v3/q"
+	"github.com/dilshat/sms-sender/model"
+	"github.com/dilshat/sms-sender/util"
 	bolt "go.etcd.io/bbolt"
 	"sync"
 	"time"

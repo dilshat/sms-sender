@@ -1,8 +1,8 @@
 package dao
 
 import (
-	"github.com/dilshat/sms-sender/model"
 	"github.com/asdine/storm/v3/q"
+	"github.com/dilshat/sms-sender/model"
 	"time"
 )
 

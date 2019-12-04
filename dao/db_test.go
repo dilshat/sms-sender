@@ -64,12 +64,12 @@ func TestGetClientExistingDb(t *testing.T) {
 	db, _ := createDB(t)
 	stormDb := db.(*storm.DB)
 	dbPath := stormDb.Bolt.Path()
-	_=stormDb.Close()
+	_ = stormDb.Close()
 	defer os.RemoveAll(dbPath)
 
 	clnt, err := GetClient(dbPath)
 
 	require.NoError(t, err)
-	require.NotEmpty(t,clnt)
+	require.NotEmpty(t, clnt)
 
 }

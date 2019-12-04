@@ -1,12 +1,12 @@
 package sms
 
 import (
-	"github.com/dilshat/sms-sender/log"
-	"github.com/dilshat/sms-sender/util"
 	"context"
 	"crypto/rand"
 	smpp "github.com/CodeMonkeyKevin/smpp34"
 	"github.com/CodeMonkeyKevin/smpp34/gsmutil"
+	"github.com/dilshat/sms-sender/log"
+	"github.com/dilshat/sms-sender/util"
 	"golang.org/x/time/rate"
 	"math"
 	"regexp"

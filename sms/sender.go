@@ -1,8 +1,8 @@
 package sms
 
 import (
-	"github.com/dilshat/sms-sender/log"
 	"github.com/cskr/pubsub"
+	"github.com/dilshat/sms-sender/log"
 	"time"
 )
 

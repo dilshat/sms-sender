@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/dilshat/sms-sender/service"
 	"github.com/dilshat/sms-sender/service/dto"
-	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 	"io"
