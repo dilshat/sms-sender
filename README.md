@@ -1,3 +1,5 @@
+[![Build Status](https://img.shields.io/travis/Dilshat/sms-sender/master.svg)](https://travis-ci.org/Dilshat/sms-sender)
+
 #### SMS service
 Simple sms service that provides HTTP API to send text messages.
 It connects directly to SMS Center or SMS proxy of telecom operator using SMPP 3.4 procotol.
