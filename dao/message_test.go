@@ -1,9 +1,9 @@
 package dao
 
 import (
+	"github.com/dilshat/sms-sender/log"
 	"github.com/dilshat/sms-sender/model"
 	"github.com/stretchr/testify/require"
-	"log"
 	"testing"
 	"time"
 )

@@ -77,5 +77,4 @@ func bindRoutes(e *echo.Echo, service service.Service) {
 	e.POST("/sms", controller.GetSendSmsFunc(service))
 
 	e.GET("/sms/:id", controller.GetCheckSmsFunc(service))
-
 }

@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	Trace = log.New(ioutil.Discard,
+	ExitOnFatal = true
+	Trace       = log.New(ioutil.Discard,
 		"TRACE: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -25,7 +26,10 @@ var (
 )
 
 func Fatal(v ...interface{}) {
-	log.Fatal(v...)
+	Error.Print(v...)
+	if ExitOnFatal {
+		os.Exit(1)
+	}
 }
 
 func WarnIfErr(description string, err error) {
