@@ -3,15 +3,16 @@ package sms
 import (
 	"context"
 	"crypto/rand"
+	"math"
+	"regexp"
+	"strconv"
+	"sync/atomic"
+
 	smpp "github.com/CodeMonkeyKevin/smpp34"
 	"github.com/CodeMonkeyKevin/smpp34/gsmutil"
 	"github.com/dilshat/sms-sender/log"
 	"github.com/dilshat/sms-sender/util"
 	"golang.org/x/time/rate"
-	"math"
-	"regexp"
-	"strconv"
-	"sync/atomic"
 )
 
 var (
@@ -185,6 +186,9 @@ func (c *smppClient) IsConnected() bool {
 }
 
 func (c *smppClient) SendMessage(id uint32, from, phone, text string) error {
+	//impose tps limit
+	c.rateLimiter.Wait(context.Background())
+
 	defer func() {
 		r := recover()
 		if r != nil {

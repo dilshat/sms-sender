@@ -2,12 +2,14 @@ package sms
 
 import (
 	"errors"
-	"github.com/CodeMonkeyKevin/smpp34"
-	"github.com/dchest/uniuri"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"runtime"
 	"testing"
+
+	"github.com/CodeMonkeyKevin/smpp34"
+	"github.com/dchest/uniuri"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -60,7 +62,7 @@ func TestSmppClient_ReadPacket(t *testing.T) {
 func TestSmppClient_SendMessage(t *testing.T) {
 	nextId = 0
 	submitCount = 0
-	smppClnt := smppClient{transceiver: transceiverWrapperMock{}}
+	smppClnt := smppClient{transceiver: transceiverWrapperMock{}, rateLimiter: rate.NewLimiter(rate.Limit(1), 1)}
 
 	err := smppClnt.SendMessage(SEQ, SENDER, PHONE, uniuri.NewLen(10))
 
