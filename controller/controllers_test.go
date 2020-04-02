@@ -2,15 +2,16 @@ package controller
 
 import (
 	"errors"
-	"github.com/dilshat/sms-sender/service"
-	"github.com/dilshat/sms-sender/service/dto"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/require"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/dilshat/sms-sender/service"
+	"github.com/dilshat/sms-sender/service/dto"
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -128,6 +129,8 @@ func (m mockContext) Request() *http.Request {
 func (m mockContext) SetRequest(r *http.Request) {
 	panic("implement me")
 }
+
+func (m mockContext) SetLogger(l echo.Logger) {}
 
 func (m mockContext) SetResponse(r *echo.Response) {
 	panic("implement me")
