@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/CodeMonkeyKevin/smpp34"
+	"github.com/Dilshat/smpp34"
 	"github.com/dchest/uniuri"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/time/rate"

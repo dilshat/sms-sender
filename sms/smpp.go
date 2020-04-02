@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	smpp "github.com/CodeMonkeyKevin/smpp34"
-	"github.com/CodeMonkeyKevin/smpp34/gsmutil"
+	smpp "github.com/Dilshat/smpp34"
+	"github.com/Dilshat/smpp34/gsmutil"
 	"github.com/dilshat/sms-sender/log"
 	"github.com/dilshat/sms-sender/util"
 	"golang.org/x/time/rate"
