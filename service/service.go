@@ -104,7 +104,16 @@ func (s service) HandleDeliverSm(smscId uint64, status string) {
 		return
 	}
 
-	resp, err := http.Post(s.webhook, "application/json", bytes.NewBuffer(msgStatusBytes))
+	client := &http.Client{Timeout: time.Second * 10}
+
+	req, err := http.NewRequest("POST", s.webhook, bytes.NewBuffer(msgStatusBytes))
+	if err != nil {
+		log.Error.Println(err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Error.Println(err)
 		return
