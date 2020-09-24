@@ -284,9 +284,13 @@ func (c *smppClient) ReadPacket() error {
 
 	pdu, err := c.transceiver.Read() // This is blocking
 	if err != nil {
-		//set connected to false
-		atomic.StoreInt32(&c.connected, 0)
-		log.Warn.Println("Error reading packet", err)
+		if _, ok := err.(smpp.SmppErr); ok {
+			log.Warn.Println("Error reading packet", err)
+		} else {
+			//set connected to false
+			atomic.StoreInt32(&c.connected, 0)
+			log.Error.Println("Error reading packet", err)
+		}
 		return err
 	}
 
