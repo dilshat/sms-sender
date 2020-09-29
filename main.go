@@ -34,7 +34,7 @@ func initZapLog() {
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	//set log level
-	config.Level.SetLevel(zap.DebugLevel)
+	config.Level.SetLevel(zap.ErrorLevel)
 	logger, _ := config.Build()
 	zap.ReplaceGlobals(logger)
 }
