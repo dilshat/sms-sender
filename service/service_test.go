@@ -16,11 +16,11 @@ const (
 	ID                uint32 = 123
 	SENDER                   = "Awesome"
 	TEXT                     = "What is up?"
-	PHONE                    = "996777555555"
-	PHONE2                   = "996222987654"
-	JSON_MESSAGE             = `{"id":123,"sender":"Awesome","text":"What is up?","statuses":[{"phone":"996777555555","status":"DELIVRD"},{"phone":"996222987654","status":"ACCEPTD"}]}`
-	JSON_RECIPIENT           = `{"id":123,"sender":"Awesome","text":"What is up?","statuses":[{"phone":"996777555555","status":"DELIVRD"}]}`
-	PHONE_MASK               = "996\\d{9}"
+	PHONE                    = "996ZZZXXXXXX"
+	PHONE2                   = "996YYYAABBCC"
+	JSON_MESSAGE             = `{"id":123,"sender":"Awesome","text":"What is up?","statuses":[{"phone":"996ZZZXXXXXX","status":"DELIVRD"},{"phone":"996YYYAABBCC","status":"ACCEPTD"}]}`
+	JSON_RECIPIENT           = `{"id":123,"sender":"Awesome","text":"What is up?","statuses":[{"phone":"996ZZZXXXXXX","status":"DELIVRD"}]}`
+	PHONE_MASK               = "996\\w{9}"
 )
 
 var (
@@ -67,12 +67,12 @@ func (m mockRecipientDao) Create(messageId uint32, phone string) (uint32, error)
 	return 2, nil
 }
 
-func (m mockRecipientDao) UpdateSubmitStatus(id uint32, deliverId uint64, status string) error {
+func (m mockRecipientDao) UpdateSubmitStatus(id uint32, deliverId string, status string) error {
 	submitStatusUpdated = true
 	return nil
 }
 
-func (m mockRecipientDao) UpdateDeliverStatus(deliverId uint64, status string) (uint32, string, error) {
+func (m mockRecipientDao) UpdateDeliverStatus(deliverId string, status string) (uint32, string, error) {
 	deliverStatusUpdated = true
 	return 0, "", nil
 }
@@ -83,7 +83,7 @@ func (m mockRecipientDao) GetOneByMessageIdAndPhone(messageId uint32, phone stri
 		MessageId: ID,
 		Phone:     PHONE,
 		Status:    "DELIVRD",
-		DeliverId: 321,
+		DeliverId: "321",
 	}, nil
 }
 
@@ -94,7 +94,7 @@ func (m mockRecipientDao) GetAllByMessageId(messageId uint32) ([]model.Recipient
 			MessageId: ID,
 			Phone:     PHONE,
 			Status:    "DELIVRD",
-			DeliverId: 321,
+			DeliverId: "321",
 			CreatedAt: time.Now(),
 		},
 		{
@@ -102,7 +102,7 @@ func (m mockRecipientDao) GetAllByMessageId(messageId uint32) ([]model.Recipient
 			MessageId: ID,
 			Phone:     PHONE2,
 			Status:    "ACCEPTD",
-			DeliverId: 567,
+			DeliverId: "567",
 			CreatedAt: time.Now(),
 		},
 	}, nil
@@ -119,13 +119,14 @@ func (m mockSender) Start() error {
 	return nil
 }
 
-func (m mockSender) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64)) {
+func (m mockSender) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string)) {
 }
 
-func (m mockSender) BindDeliverSmHandler(handler func(smscId uint64, status string)) {
+func (m mockSender) BindDeliverSmHandler(handler func(smscId string, status string)) {
 }
 
-func (m mockSender) Send(id uint32, sender, phone, text string) {
+func (m mockSender) Send(id uint32, sender, phone, text string) error {
+	return nil
 }
 
 func TestService_SendMessage(t *testing.T) {
@@ -186,7 +187,7 @@ func TestImp_HandleSubmitSmResp(t *testing.T) {
 		recipientDao: mockRecipientDao{},
 	}
 
-	impl.HandleSubmitSmResp(ID, 0, 123)
+	impl.HandleSubmitSmResp(ID, 0, "123")
 
 	require.True(t, submitStatusUpdated)
 }
@@ -227,7 +228,7 @@ func TestImp_HandleDeliverSm(t *testing.T) {
 		webhook:      "http://www.kg",
 	}
 
-	impl.HandleDeliverSm(123, "status")
+	impl.HandleDeliverSm("123", "status")
 
 	require.True(t, deliverStatusUpdated)
 }

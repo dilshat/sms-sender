@@ -1,18 +1,19 @@
 package dao
 
 import (
+	"time"
+
 	"github.com/asdine/storm/v3/q"
 	"github.com/dilshat/sms-sender/model"
-	"time"
 )
 
 type RecipientDao interface {
 	//Create creates recipient record and returns its id
 	Create(messageId uint32, phone string) (uint32, error)
 	//UpdateSubmitStatus updates status and delivery id of recipient record with the given id
-	UpdateSubmitStatus(id uint32, deliverId uint64, status string) error
+	UpdateSubmitStatus(id uint32, deliverId string, status string) error
 	//UpdateDeliverStatus updates status of recipient record with the delivery id
-	UpdateDeliverStatus(deliverId uint64, status string) (uint32, string, error)
+	UpdateDeliverStatus(deliverId string, status string) (uint32, string, error)
 	//GetOneByMessageIdAndPhone returns a recipient with the given message id and phone
 	GetOneByMessageIdAndPhone(messageId uint32, phone string) (model.Recipient, error)
 	//GetAllByMessageId returns all recipients with the given message id
@@ -45,7 +46,7 @@ func (r recipientDao) Create(messageId uint32, phone string) (uint32, error) {
 	return recipient.Id, err
 }
 
-func (r recipientDao) UpdateSubmitStatus(id uint32, deliverId uint64, status string) error {
+func (r recipientDao) UpdateSubmitStatus(id uint32, deliverId string, status string) error {
 	//update status based on SUBMIT_SM_RESP status
 	var recipient model.Recipient
 	err := r.db.One("Id", id, &recipient)
@@ -57,7 +58,7 @@ func (r recipientDao) UpdateSubmitStatus(id uint32, deliverId uint64, status str
 	return r.db.Update(&recipient)
 }
 
-func (r recipientDao) UpdateDeliverStatus(deliverId uint64, status string) (uint32, string, error) {
+func (r recipientDao) UpdateDeliverStatus(deliverId string, status string) (uint32, string, error) {
 	//update status based on DELIVER_SM
 	var recipient model.Recipient
 	err := r.db.One("DeliverId", deliverId, &recipient)

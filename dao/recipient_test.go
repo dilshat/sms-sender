@@ -1,19 +1,20 @@
 package dao
 
 import (
-	"github.com/dilshat/sms-sender/log"
-	"github.com/dilshat/sms-sender/model"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/dilshat/sms-sender/model"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 const (
 	MSG_ID1    = uint32(123)
 	MSG_ID2    = uint32(321)
-	PHONE1     = "996777123456"
-	PHONE2     = "996222987654"
-	DELIVER_ID = uint64(1234)
+	PHONE1     = "996YYYAABBCC"
+	PHONE2     = "999ZZZXXXXXX"
+	DELIVER_ID = "1234"
 )
 
 func prepareDB2(t errorHandler) (Db, func()) {
@@ -23,13 +24,13 @@ func prepareDB2(t errorHandler) (Db, func()) {
 	msg := &model.Recipient{MessageId: MSG_ID1, Phone: PHONE1, Id: ID1, CreatedAt: time.Now()}
 	err := db.Save(msg)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal(err.Error())
 	}
 	ID1 = msg.Id
 	msg = &model.Recipient{MessageId: MSG_ID2, Phone: PHONE2, Id: ID2, CreatedAt: time.Now().Add(-25 * time.Hour)}
 	err = db.Save(msg)
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal(err.Error())
 	}
 	ID2 = msg.Id
 

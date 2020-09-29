@@ -5,13 +5,12 @@ import (
 	"crypto/rand"
 	"math"
 	"regexp"
-	"strconv"
 	"sync/atomic"
 
 	smpp "github.com/Dilshat/smpp34"
 	"github.com/Dilshat/smpp34/gsmutil"
-	"github.com/dilshat/sms-sender/log"
 	"github.com/dilshat/sms-sender/util"
+	"go.uber.org/zap"
 	"golang.org/x/time/rate"
 )
 
@@ -84,8 +83,8 @@ type SmppClient interface {
 	Reconnect() error
 	IsConnected() bool
 	SendMessage(id uint32, from, phone, text string) error
-	BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64))
-	BindDeliverSmHandler(handler func(smscId uint64, status string))
+	BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string))
+	BindDeliverSmHandler(handler func(smscId string, status string))
 	ReadPacket() error
 }
 
@@ -102,15 +101,15 @@ type smppClient struct {
 	transceiver        TransceiverWrapper //*smpp.Transceiver
 	transceiverFactory TransceiverWrapperFactory
 	rateLimiter        RateLimiter
-	submitSmHandler    func(id, status uint32, smscId uint64)
-	deliverHandler     func(smscId uint64, status string)
+	submitSmHandler    func(id, status uint32, smscId string)
+	deliverHandler     func(smscId string, status string)
 }
 
-func (c *smppClient) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64)) {
+func (c *smppClient) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string)) {
 	c.submitSmHandler = handler
 }
 
-func (c *smppClient) BindDeliverSmHandler(handler func(smscId uint64, status string)) {
+func (c *smppClient) BindDeliverSmHandler(handler func(smscId string, status string)) {
 	c.deliverHandler = handler
 }
 
@@ -130,12 +129,12 @@ func (c *smppClient) Disconnect() {
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Error.Println("Recovered in Disconnect", r)
+			zap.L().Error("Recovered in Disconnect")
 		}
 		atomic.StoreInt32(&c.connected, 0)
 	}()
 
-	log.Info.Println("Disconnecting from SMSC")
+	zap.L().Info("Disconnecting from SMSC")
 
 	if c.transceiver != nil {
 		_ = c.transceiver.Unbind()
@@ -147,12 +146,12 @@ func (c *smppClient) Connect() error {
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Error.Println("Recovered in Connect", r)
+			zap.L().Error("Recovered in Connect")
 			atomic.StoreInt32(&c.connected, 0)
 		}
 	}()
 
-	log.Info.Println("Connecting to SMSC")
+	zap.L().Info("Connecting to SMSC")
 
 	var err error
 	c.transceiver, err = c.transceiverFactory.GetTransceiver(
@@ -167,10 +166,10 @@ func (c *smppClient) Connect() error {
 
 	if err == nil {
 		atomic.StoreInt32(&c.connected, 1)
-		log.Info.Println("Connection succeeded")
+		zap.L().Info("Connection succeeded")
 	} else {
 		atomic.StoreInt32(&c.connected, 0)
-		log.Error.Println("Connection failed")
+		zap.L().Error("Connection failed")
 	}
 
 	return err
@@ -192,7 +191,7 @@ func (c *smppClient) SendMessage(id uint32, from, phone, text string) error {
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Error.Println("Recovered in SendMessage", r)
+			zap.L().Error("Recovered in SendMessage")
 			atomic.StoreInt32(&c.connected, 0)
 		}
 	}()
@@ -216,7 +215,9 @@ func (c *smppClient) SendMessage(id uint32, from, phone, text string) error {
 
 		commonId := make([]byte, 1)
 		_, err := rand.Read(commonId)
-		log.WarnIfErr("Error generating common id", err)
+		if err != nil {
+			zap.L().Warn("Error generating common sms id", zap.Error(err))
+		}
 
 		for i := 1; i <= partsCount; i++ {
 			partNo := i
@@ -249,7 +250,7 @@ func (c *smppClient) SendMessage(id uint32, from, phone, text string) error {
 			if finalPart {
 				return err
 			} else {
-				log.ErrIfErr("Error sending submit_sm", err)
+				zap.L().Error("Error sending submit_sm", zap.Error(err))
 			}
 		}
 
@@ -278,18 +279,15 @@ func (c *smppClient) ReadPacket() error {
 		r := recover()
 		if r != nil {
 			atomic.StoreInt32(&c.connected, 0)
-			log.Error.Println("Recovered in ReadPacket", r)
+			zap.L().Error("Recovered in ReadPacket")
 		}
 	}()
 
 	pdu, err := c.transceiver.Read() // This is blocking
 	if err != nil {
-		if _, ok := err.(smpp.SmppErr); ok {
-			log.Warn.Println("Error reading packet", err)
-		} else {
+		if _, ok := err.(smpp.SmppErr); !ok {
 			//set connected to false
 			atomic.StoreInt32(&c.connected, 0)
-			log.Error.Println("Error reading packet", err)
 		}
 		return err
 	}
@@ -305,12 +303,12 @@ func (c *smppClient) ReadPacket() error {
 
 		//send deliverSmResp
 		err = c.transceiver.DeliverSmResp(pdu.GetHeader().Sequence, smpp.ESME_ROK)
-		log.ErrIfErr("DeliverSmResp err:", err)
+		if err != nil {
+			zap.L().Error("Error sending DeliverSmResp:", zap.Error(err))
+		}
 
 		c.processDeliverSm(pdu)
 
-	default:
-		log.Trace.Println("PDU ID:", pdu.GetHeader().Id)
 	}
 
 	return nil
@@ -323,18 +321,10 @@ func (c *smppClient) processSubmitSmResp(pdu smpp.Pdu) {
 	}
 	submitStatus := uint32(pdu.GetHeader().Status)
 	msgId := pdu.GetField("message_id").String()
-	smscId, err := strconv.ParseUint(msgId, 10, 64)
-	if err != nil {
-		smscId, err = strconv.ParseUint(msgId, 16, 64)
-		if err != nil {
-			log.Error.Println("Failed to parse submit_sm_rep", msgId)
-			return
-		}
-	}
 
-	go c.submitSmHandler(seqId, submitStatus, smscId)
+	go c.submitSmHandler(seqId, submitStatus, msgId)
 
-	log.Info.Printf("SubmitSmResp: id=%d, smsId=%d,status=%d\n", seqId, smscId, submitStatus)
+	zap.L().Debug("SubmitSmResp", zap.Uint32("id", seqId), zap.String("smsc-id", msgId), zap.Uint32("submit status", submitStatus))
 }
 
 func (c *smppClient) processDeliverSm(pdu smpp.Pdu) {
@@ -342,20 +332,11 @@ func (c *smppClient) processDeliverSm(pdu smpp.Pdu) {
 
 	res := dlvRctRx.FindAllStringSubmatch(dlvSm, -1)
 	if len(res) != 1 || len(res[0]) != 3 {
-		log.Error.Println("Failed to parse deliver_sm", dlvSm)
+		zap.L().Warn("Failed to parse deliver_sm", zap.String("deliver-sm", dlvSm))
 		return
 	}
-	smscId, err := strconv.ParseUint(res[0][1], 10, 64)
-	if err != nil {
-		smscId, err = strconv.ParseUint(res[0][1], 16, 64)
-		if err != nil {
-			log.Error.Println("Failed to parse deliver_sm", dlvSm)
-			return
-		}
-	}
-	status := res[0][2]
 
-	go c.deliverHandler(smscId, status)
+	go c.deliverHandler(res[0][1], res[0][2])
 
-	log.Info.Printf("DeliverSm: smscId=%d, status=%s\n", smscId, status)
+	zap.L().Debug("DeliverSm", zap.String("smsc-id", res[0][1]), zap.String("delivery status", res[0][2]))
 }

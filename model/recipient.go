@@ -24,6 +24,6 @@ type Recipient struct {
 	MessageId uint32 `storm:"index"`
 	Phone     string `storm:"index"`
 	Status    string
-	DeliverId uint64    `storm:"index"`
+	DeliverId string    `storm:"index"`
 	CreatedAt time.Time `storm:"index"`
 }

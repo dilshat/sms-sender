@@ -1,5 +1,5 @@
 .idea
 sms-sender.exe
 sms-sender
-smsservice
-/coverage.txt
+coverage.txt
+sms.db

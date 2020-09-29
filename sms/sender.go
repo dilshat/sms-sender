@@ -1,9 +1,11 @@
 package sms
 
 import (
-	"github.com/cskr/pubsub"
-	"github.com/dilshat/sms-sender/log"
+	"errors"
 	"time"
+
+	"github.com/cskr/pubsub"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,9 +24,9 @@ type Response struct {
 
 type Sender interface {
 	Start() error
-	Send(id uint32, sender, phone, text string)
-	BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64))
-	BindDeliverSmHandler(handler func(smscId uint64, status string))
+	Send(id uint32, sender, phone, text string) error
+	BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string))
+	BindDeliverSmHandler(handler func(smscId string, status string))
 }
 
 type sender struct {
@@ -52,22 +54,30 @@ func (s *sender) Start() error {
 	return nil
 }
 
-func (s *sender) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64)) {
+func (s *sender) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string)) {
 	s.smppClient.BindSubmitSmResponseHandler(handler)
 }
 
-func (s *sender) BindDeliverSmHandler(handler func(smscId uint64, status string)) {
+func (s *sender) BindDeliverSmHandler(handler func(smscId string, status string)) {
 	s.smppClient.BindDeliverSmHandler(handler)
 }
 
-func (s *sender) Send(id uint32, sender, phone, text string) {
+func (s *sender) Send(id uint32, sender, phone, text string)error {
+	if !s.smppClient.IsConnected() {
+		return errors.New("Not connected to SMSC")
+	}
+
 	s.ps.Pub(sms{Id: id, Sender: sender, Phone: phone, Text: text}, OUT)
+
+	return nil
 }
 func (s *sender) ReadPackets() {
 	for {
 		if s.smppClient.IsConnected() {
 			err := s.smppClient.ReadPacket()
-			log.ErrIfErr("", err)
+			if err != nil {
+				zap.L().Error("Error reading packets", zap.Error(err))
+			}
 		}
 	}
 }
@@ -76,7 +86,9 @@ func (s *sender) CheckConnection() {
 	for {
 		if !s.smppClient.IsConnected() {
 			err := s.smppClient.Reconnect()
-			log.ErrIfErr("", err)
+			if err != nil {
+				zap.L().Error("Error reconnecting", zap.Error(err))
+			}
 		}
 		time.Sleep(time.Second)
 	}
@@ -90,7 +102,9 @@ func (s *sender) processOutgoing() {
 				if ok {
 					sms := val.(sms)
 					err := s.smppClient.SendMessage(sms.Id, sms.Sender, sms.Phone, sms.Text)
-					log.ErrIfErr("", err)
+					if err != nil {
+						zap.L().Error("Error sending message", zap.Error(err))
+					}
 				} else {
 					//channel closed, should not arrive here
 					return

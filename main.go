@@ -4,7 +4,6 @@ import (
 	"github.com/dilshat/sms-sender/controller"
 	"github.com/dilshat/sms-sender/dao"
 	_ "github.com/dilshat/sms-sender/docs"
-	"github.com/dilshat/sms-sender/log"
 	"github.com/dilshat/sms-sender/service"
 	"github.com/dilshat/sms-sender/sms"
 	"github.com/dilshat/sms-sender/util"
@@ -12,6 +11,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // @title Sms service HTTP API
@@ -21,17 +22,30 @@ import (
 // @contact.email dilshat.aliev@gmail.com
 
 func init() {
+	initZapLog()
 	err := godotenv.Load()
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Fatal("Error loading env variables", zap.Error(err))
 	}
 }
 
+func initZapLog() {
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	//set log level
+	config.Level.SetLevel(zap.DebugLevel)
+	logger, _ := config.Build()
+	zap.ReplaceGlobals(logger)
+}
+
 func main() {
+	defer zap.L().Sync() // flushes buffer, if any
+
 	//create db client
 	dbClient, err := dao.GetClient(util.GetEnv("DB_PATH", "sms.db"))
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("Error connecting to db", zap.Error(err))
 	}
 
 	//create smpp client
@@ -47,7 +61,7 @@ func main() {
 	//start sms sender
 	err = smsSender.Start()
 	if err != nil {
-		log.Fatal(err)
+		zap.L().Fatal("Error connecting to SMSC", zap.Error(err))
 	}
 
 	smsService := service.NewService(
@@ -69,7 +83,8 @@ func main() {
 	bindRoutes(e, smsService)
 
 	//start http server
-	log.Fatal(e.Start(":" + util.GetEnv("HTTP_PORT", "8080")))
+	err = e.Start(":" + util.GetEnv("HTTP_PORT", "8080"))
+	zap.L().Fatal("Error starting http server", zap.Error(err))
 }
 
 func bindRoutes(e *echo.Echo, service service.Service) {

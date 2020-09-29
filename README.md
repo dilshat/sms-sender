@@ -13,7 +13,7 @@ HTTP API description is available at `http://${base-path}/swagger/index.html` (t
 
 - Sending message (there might be more than one recipient phone):
 ```
-curl localhost:8080/sms -H "Content-Type: application/json" -d '{"phones":["996778295555"],"text":"hello", "sender":"awesome"}'
+curl localhost:8080/sms -H "Content-Type: application/json" -d '{"phones":["996XXXZZZZZZ"],"text":"hello", "sender":"awesome"}'
 ```
 will return response containing id of message, which can be used later to check status of message delivery:
 ```
@@ -23,7 +23,7 @@ will return response containing id of message, which can be used later to check 
 - Check status of message delivery
 ```
 curl localhost:8080/sms/56
-curl localhost:8080/sms/56?phone=996778295555
+curl localhost:8080/sms/56?phone=996XXXZZZZZZ
 ```
 response:
 ```
@@ -33,7 +33,7 @@ response:
   "text": "hello",
   "statuses": [
     {
-      "phone": "996778295555",
+      "phone": "996XXXZZZZZZ",
       "status": "DELIVRD"
     }
   ]
@@ -55,7 +55,7 @@ If _WEB_HOOK_ is set to some non-empty URL, the service will send notifications 
   "text": "hello",
   "statuses": [
     {
-      "phone": "996778295555",
+      "phone": "996XXXZZZZZZ",
       "status": "DELIVRD"
     }
   ]

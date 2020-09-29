@@ -9,7 +9,7 @@ POST /sms
 {
     "sender" : "Awesome",
     "text" : "Hello World",
-    "phones" : ["996777123456","996222765432"]
+    "phones" : ["996XXXZZZZZZ","996XXXAABBCC"]
 }
 
 response:
@@ -29,11 +29,11 @@ response:
     "text" : "Hello World",
     "statuses" : [
         {
-            "phone" : "996777123456",
+            "phone" : "996XXXZZZZZZ",
             "status" : "DELIVRD"
         },
         {
-            "phone" : "996222765432",
+            "phone" : "996XXXAABBCC",
             "status" : "UNDELIV"
         }
     ]
@@ -41,7 +41,7 @@ response:
 
 ------------------------------------
 
-GET /sms/1234?phone=996777123456
+GET /sms/1234?phone=996XXXAABBCC
 response:
 200 OK
 {
@@ -50,7 +50,7 @@ response:
     "text" : "Hello World",
     "statuses" : [
         {
-            "phone" : "996777123456",
+            "phone" : "996XXXAABBCC",
             "status" : "DELIVRD"
         }
     ]

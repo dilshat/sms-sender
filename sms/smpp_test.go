@@ -15,7 +15,7 @@ import (
 const (
 	SEQ    uint32 = 1
 	SENDER        = "sender"
-	PHONE         = "996777123456"
+	PHONE         = "996YYYAABBCC"
 )
 
 var (
@@ -38,7 +38,7 @@ func TestSmppClient_ReadPacket(t *testing.T) {
 	pdu := mockPdu{header: &smpp34.Header{Id: smpp34.SUBMIT_SM_RESP, Sequence: SEQ, Status: 0},
 		field: mockField{str: "1203837180"}}
 	smppClnt = smppClient{transceiver: transceiverWrapperMock{pdu: pdu}}
-	f := func(id, status uint32, smscId uint64) {}
+	f := func(id, status uint32, smscId string) {}
 	smppClnt.BindSubmitSmResponseHandler(f)
 
 	err = smppClnt.ReadPacket()
@@ -50,7 +50,7 @@ func TestSmppClient_ReadPacket(t *testing.T) {
 	pdu = mockPdu{header: &smpp34.Header{Id: smpp34.DELIVER_SM},
 		field: mockField{str: "id:1203837180  sub:001 dlvrd:1  submit date:1911251537 done date:1911251537 stat:DELIVRD err:000  TEXT:a message space. What is up bro?"}}
 	smppClnt = smppClient{transceiver: transceiverWrapperMock{pdu: pdu}}
-	f2 := func(smscId uint64, status string) {}
+	f2 := func(smscId string, status string) {}
 	smppClnt.BindDeliverSmHandler(f2)
 
 	err = smppClnt.ReadPacket()
@@ -131,7 +131,7 @@ func TestSmppClient_Disconnect(t *testing.T) {
 
 func TestSmppClient_BindDeliverSmHandler(t *testing.T) {
 	smppClnt := smppClient{}
-	f := func(smscId uint64, status string) {}
+	f := func(smscId string, status string) {}
 
 	smppClnt.BindDeliverSmHandler(f)
 
@@ -140,7 +140,7 @@ func TestSmppClient_BindDeliverSmHandler(t *testing.T) {
 
 func TestSmppClient_BindSubmitSmResponseHandler(t *testing.T) {
 	smppClnt := smppClient{}
-	f := func(id, status uint32, smscId uint64) {}
+	f := func(id, status uint32, smscId string) {}
 
 	smppClnt.BindSubmitSmResponseHandler(f)
 

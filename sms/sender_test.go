@@ -47,11 +47,11 @@ func (m mockSmppClient) Reconnect() error {
 	return nil
 }
 
-func (m mockSmppClient) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId uint64)) {
+func (m mockSmppClient) BindSubmitSmResponseHandler(handler func(id, status uint32, smscId string)) {
 	submitHandlerBound = true
 }
 
-func (m mockSmppClient) BindDeliverSmHandler(handler func(smscId uint64, status string)) {
+func (m mockSmppClient) BindDeliverSmHandler(handler func(smscId string, status string)) {
 	deliverHandlerBound = true
 }
 
@@ -80,7 +80,7 @@ func TestSender_Start(t *testing.T) {
 
 func TestSender_Send(t *testing.T) {
 	ps := pubsub.New(0)
-	sender := sender{ps: ps, out: ps.Sub(OUT), smppClient: mockSmppClient{}}
+	sender := sender{ps: ps, out: ps.Sub(OUT), smppClient: mockSmppClient{connnected: true}}
 
 	sender.Send(123, "sender", "phone", "text")
 
@@ -115,7 +115,7 @@ func TestSender_CheckConnection(t *testing.T) {
 func TestSender_BindDeliverSmHandler(t *testing.T) {
 	sender := NewSender(mockSmppClient{})
 
-	sender.BindDeliverSmHandler(func(smscId uint64, status string) {
+	sender.BindDeliverSmHandler(func(smscId string, status string) {
 	})
 
 	require.True(t, deliverHandlerBound)
@@ -124,7 +124,7 @@ func TestSender_BindDeliverSmHandler(t *testing.T) {
 func TestSender_BindSubmitSmResponseHandler(t *testing.T) {
 	sender := NewSender(mockSmppClient{})
 
-	sender.BindSubmitSmResponseHandler(func(id, status uint32, smscId uint64) {
+	sender.BindSubmitSmResponseHandler(func(id, status uint32, smscId string) {
 
 	})
 

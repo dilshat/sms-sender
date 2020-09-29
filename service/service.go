@@ -3,17 +3,18 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/dilshat/sms-sender/dao"
-	"github.com/dilshat/sms-sender/log"
-	"github.com/dilshat/sms-sender/model"
-	"github.com/dilshat/sms-sender/service/dto"
-	"github.com/dilshat/sms-sender/sms"
-	"github.com/dilshat/sms-sender/util"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dilshat/sms-sender/dao"
+	"github.com/dilshat/sms-sender/model"
+	"github.com/dilshat/sms-sender/service/dto"
+	"github.com/dilshat/sms-sender/sms"
+	"github.com/dilshat/sms-sender/util"
+	"go.uber.org/zap"
 )
 
 type InvalidPayloadErr struct {
@@ -66,25 +67,33 @@ func NewService(sender sms.Sender, messageDao dao.MessageDao, recipientDao dao.R
 
 func (s service) CleanupDb() {
 	for {
-		log.WarnIfErr("Error cleaning up messages", s.messageDao.RemoveOlderThanDays(s.statusStoreDays))
-		log.WarnIfErr("Error cleaning up recipients", s.recipientDao.RemoveOlderThanDays(s.statusStoreDays))
+		err := s.messageDao.RemoveOlderThanDays(s.statusStoreDays)
+		if err != nil {
+			zap.L().Warn("Error cleaning up messages", zap.Error(err))
+		}
+		err = s.recipientDao.RemoveOlderThanDays(s.statusStoreDays)
+		if err != nil {
+			zap.L().Warn("Error cleaning up recipients", zap.Error(err))
+		}
 		time.Sleep(time.Hour)
 	}
 }
 
-func (s service) HandleSubmitSmResp(id, status uint32, smscId uint64) {
+func (s service) HandleSubmitSmResp(id, status uint32, smscId string) {
 	smStatus := model.SUBMIT_OK
 	if status != 0 {
 		smStatus = model.SUBMIT_FAIL
 	}
 	err := s.recipientDao.UpdateSubmitStatus(id, smscId, smStatus)
-	log.ErrIfErr("", err)
+	if err != nil {
+		zap.L().Error("Error updating submit status", zap.Error(err))
+	}
 }
 
-func (s service) HandleDeliverSm(smscId uint64, status string) {
+func (s service) HandleDeliverSm(smscId string, status string) {
 	msgId, phone, err := s.recipientDao.UpdateDeliverStatus(smscId, status)
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Error("Error updating delivery status", zap.Error(err))
 		return
 	}
 
@@ -94,13 +103,13 @@ func (s service) HandleDeliverSm(smscId uint64, status string) {
 
 	msgStatus, err := s.CheckStatusOfRecipient(msgId, phone)
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Error("Error checking recipient message status", zap.Error(err))
 		return
 	}
 
 	msgStatusBytes, err := json.Marshal(msgStatus)
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Error("Error checking recipient message status", zap.Error(err))
 		return
 	}
 
@@ -108,20 +117,20 @@ func (s service) HandleDeliverSm(smscId uint64, status string) {
 
 	req, err := http.NewRequest("POST", s.webhook, bytes.NewBuffer(msgStatusBytes))
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Error("Error calling web hook", zap.Error(err))
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Error.Println(err)
+		zap.L().Error("Error calling web hook", zap.Error(err))
 		return
 	}
 	defer resp.Body.Close()
 
 	if !(resp.StatusCode >= 200 && resp.StatusCode <= 202) {
-		log.Warn.Printf("Webhook returned http status %d\n", resp.StatusCode)
+		zap.L().Warn("Webhook returned unexpected status", zap.String("status", resp.Status))
 	}
 }
 
@@ -160,7 +169,11 @@ func (s service) SendMessage(message dto.Message) (dto.Id, error) {
 		if err != nil {
 			return dto.Id{}, err
 		}
-		s.sender.Send(id, message.Sender, phone, message.Text)
+
+		err = s.sender.Send(id, message.Sender, phone, message.Text)
+		if err != nil {
+			return dto.Id{}, err
+		}
 	}
 
 	return dto.Id{Id: msgId}, nil

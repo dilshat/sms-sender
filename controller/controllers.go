@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"github.com/dilshat/sms-sender/log"
-	"github.com/dilshat/sms-sender/service"
-	"github.com/dilshat/sms-sender/service/dto"
-	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/dilshat/sms-sender/service"
+	"github.com/dilshat/sms-sender/service/dto"
+	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 // SendSms godoc
@@ -33,7 +34,7 @@ func GetSendSmsFunc(srv service.Service) echo.HandlerFunc {
 			case *service.InvalidPayloadErr:
 				return c.String(http.StatusBadRequest, err.Error())
 			default:
-				log.Error.Println(err)
+				zap.L().Error("Error sending message", zap.Error(err))
 				return c.String(http.StatusInternalServerError, "System malfunction. Please, try later")
 			}
 		}
@@ -68,7 +69,7 @@ func GetCheckSmsFunc(service service.Service) echo.HandlerFunc {
 				if err.Error() == "not found" {
 					return c.String(http.StatusNotFound, "Message not found "+id)
 				} else {
-					log.Error.Println(err)
+					zap.L().Error("Error checking message status", zap.Error(err))
 					return c.String(http.StatusInternalServerError, "System malfunction. Please, try later")
 				}
 			}
@@ -80,7 +81,7 @@ func GetCheckSmsFunc(service service.Service) echo.HandlerFunc {
 				if err.Error() == "not found" {
 					return c.String(http.StatusNotFound, "Phone not found "+phone)
 				} else {
-					log.Error.Println(err)
+					zap.L().Error("Error checking recipient message status", zap.Error(err))
 					return c.String(http.StatusInternalServerError, "System malfunction. Please, try later")
 				}
 			}

@@ -79,21 +79,21 @@ func TestGetCheckSmsFunc(t *testing.T) {
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("not found")})
 
-	_ = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996YYYAABBCC"})
 
 	require.True(t, stringCalled)
 
 	stringCalled = false
 	f = GetCheckSmsFunc(mockService{checkStatusErr: errors.New("blablabla")})
 
-	_ = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996YYYAABBCC"})
 
 	require.True(t, stringCalled)
 
 	OK200 = false
 	f = GetCheckSmsFunc(mockService{})
 
-	_ = f(mockContext{param: "123", queryParam: "996777123456"})
+	_ = f(mockContext{param: "123", queryParam: "996YYYAABBCC"})
 
 	require.True(t, OK200)
 }
