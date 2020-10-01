@@ -1,10 +1,11 @@
 package sms
 
 import (
-	"github.com/cskr/pubsub"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/cskr/pubsub"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -72,7 +73,7 @@ func TestSender_Start(t *testing.T) {
 	sender.Send(123, "sender", "phone", "text")
 
 	err := sender.Start()
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Second * 2)
 
 	require.NoError(t, err)
 	require.True(t, messageSent)
