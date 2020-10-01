@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/dilshat/sms-sender/controller"
 	"github.com/dilshat/sms-sender/dao"
 	_ "github.com/dilshat/sms-sender/docs"
@@ -22,21 +24,30 @@ import (
 // @contact.email dilshat.aliev@gmail.com
 
 func init() {
-	initZapLog()
 	err := godotenv.Load()
 	if err != nil {
-		zap.L().Fatal("Error loading env variables", zap.Error(err))
+		log.Fatal("Error loading env variables", err)
+	}
+	initZapLog()
+	if err != nil {
+		log.Fatal("Error initializing logger", err)
 	}
 }
 
-func initZapLog() {
+func initZapLog() error {
 	config := zap.NewProductionConfig()
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	//set log level
-	config.Level.SetLevel(zap.ErrorLevel)
-	logger, _ := config.Build()
+	logLevel := zap.InfoLevel
+	logLevel.Set(util.GetEnv("LOG_LEVEL", "ERROR"))
+	config.Level.SetLevel(logLevel)
+	logger, err := config.Build()
+	if err != nil {
+		return err
+	}
 	zap.ReplaceGlobals(logger)
+	return nil
 }
 
 func main() {

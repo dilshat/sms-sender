@@ -62,7 +62,7 @@ func (s *sender) BindDeliverSmHandler(handler func(smscId string, status string)
 	s.smppClient.BindDeliverSmHandler(handler)
 }
 
-func (s *sender) Send(id uint32, sender, phone, text string)error {
+func (s *sender) Send(id uint32, sender, phone, text string) error {
 	if !s.smppClient.IsConnected() {
 		return errors.New("Not connected to SMSC")
 	}
