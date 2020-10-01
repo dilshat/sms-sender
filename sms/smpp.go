@@ -169,7 +169,7 @@ func (c *smppClient) Connect() error {
 		zap.L().Info("Connection succeeded")
 	} else {
 		atomic.StoreInt32(&c.connected, 0)
-		zap.L().Error("Connection failed")
+		zap.L().Warn("Connection failed")
 	}
 
 	return err

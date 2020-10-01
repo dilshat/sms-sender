@@ -78,6 +78,8 @@ func (s *sender) ReadPackets() {
 			if err != nil {
 				zap.L().Error("Error reading packets", zap.Error(err))
 			}
+		} else {
+			time.Sleep(time.Second)
 		}
 	}
 }
@@ -90,7 +92,7 @@ func (s *sender) CheckConnection() {
 				zap.L().Error("Error reconnecting", zap.Error(err))
 			}
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 5)
 	}
 }
 
@@ -114,7 +116,7 @@ func (s *sender) processOutgoing() {
 				}
 			default:
 				//no new messages, no-op
-				continue
+				time.Sleep(time.Second)
 			}
 		} else {
 			time.Sleep(time.Second)

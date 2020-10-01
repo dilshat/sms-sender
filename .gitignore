@@ -1,5 +1,4 @@
 .idea
-sms-sender.exe
-sms-sender
+sms-sender*
 coverage.txt
 sms.db
