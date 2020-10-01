@@ -95,6 +95,7 @@ func (s *sender) CheckConnection() {
 }
 
 func (s *sender) processOutgoing() {
+	sleepDuration := time.Microsecond * 500
 	for {
 		if s.smppClient.IsConnected() {
 			select {
@@ -105,6 +106,8 @@ func (s *sender) processOutgoing() {
 					if err != nil {
 						zap.L().Error("Error sending message", zap.Error(err))
 					}
+					//sleep to avoid sending messages without pauses
+					time.Sleep(sleepDuration)
 				} else {
 					//channel closed, should not arrive here
 					return
