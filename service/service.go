@@ -93,8 +93,24 @@ func (s service) HandleSubmitSmResp(id, status uint32, smscId string) {
 func (s service) HandleDeliverSm(smscId string, status string) {
 	msgId, phone, err := s.recipientDao.UpdateDeliverStatus(smscId, status)
 	if err != nil {
-		zap.L().Error("Error updating delivery status", zap.Error(err))
-		return
+		if err.Error() == "not found" {
+			//retry update with the id in another format
+			if util.IsDecimal(smscId) {
+				//try to update with the id in hex format
+				msgId, phone, err = s.recipientDao.UpdateDeliverStatus(util.DecimalToHexString(smscId), status)
+			} else {
+				//try to update with the id in decimal format
+				msgId, phone, err = s.recipientDao.UpdateDeliverStatus(util.HexToDecimalString(smscId), status)
+			}
+
+			if err != nil {
+				zap.L().Error("Error updating delivery status", zap.Error(err))
+				return
+			}
+		} else {
+			zap.L().Error("Error updating delivery status", zap.Error(err))
+			return
+		}
 	}
 
 	if util.IsBlank(s.webhook) {

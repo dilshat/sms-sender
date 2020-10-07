@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"strings"
 	"time"
 
 	"github.com/asdine/storm/v3/q"
@@ -53,7 +54,7 @@ func (r recipientDao) UpdateSubmitStatus(id uint32, deliverId string, status str
 	if err != nil {
 		return err
 	}
-	recipient.DeliverId = deliverId
+	recipient.DeliverId = strings.ToUpper(deliverId)
 	recipient.Status = status
 	return r.db.Update(&recipient)
 }
@@ -61,7 +62,7 @@ func (r recipientDao) UpdateSubmitStatus(id uint32, deliverId string, status str
 func (r recipientDao) UpdateDeliverStatus(deliverId string, status string) (uint32, string, error) {
 	//update status based on DELIVER_SM
 	var recipient model.Recipient
-	err := r.db.One("DeliverId", deliverId, &recipient)
+	err := r.db.One("DeliverId", strings.ToUpper(deliverId), &recipient)
 	if err != nil {
 		return 0, "", err
 	}
