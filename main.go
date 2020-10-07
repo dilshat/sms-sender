@@ -42,6 +42,10 @@ func initZapLog() error {
 	logLevel := zap.InfoLevel
 	logLevel.Set(util.GetEnv("LOG_LEVEL", "ERROR"))
 	config.Level.SetLevel(logLevel)
+	logFile := util.GetEnv("LOG_FILE", "")
+	if logFile != "" {
+		config.OutputPaths = append(config.OutputPaths, logFile)
+	}
 	logger, err := config.Build()
 	if err != nil {
 		return err
