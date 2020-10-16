@@ -249,7 +249,7 @@ func (c *smppClient) SendMessage(id uint32, from, phone, text string) error {
 
 			if finalPart {
 				return err
-			} else {
+			} else if err != nil {
 				zap.L().Error("Error sending submit_sm", zap.Error(err))
 			}
 		}
