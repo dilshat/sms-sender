@@ -23,3 +23,4 @@ services:
       - TX_PER_SEC=${TX_PER_SEC}
       - SMS_MAX_LEN=${SMS_MAX_LEN}
       - WEB_HOOK=${WEB_HOOK}
+    network_mode: "host"  # use 'host' network mode to mitigate networking issues
